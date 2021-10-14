@@ -1,6 +1,5 @@
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 public class Node
 {
@@ -14,7 +13,13 @@ public class Node
 		this.coordY = coordY;
 		this.number = number;
 	}
-	
+	public Node(int coordX, int coordY)
+	{
+		this.coordX = coordX;
+		this.coordY = coordY;
+	}
+
+
 	public int getCoordX() {
 		return coordX;
 	}
@@ -34,16 +39,22 @@ public class Node
 		this.number = number;
 	}
 
-	public void drawNode(Graphics g, int node_diam)
+	public void drawNode(Graphics gg, int node_diam)
 	{
+		Graphics2D g = (Graphics2D) gg;
+		int node_radius = node_diam / 2;
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		g.setColor(Color.RED);
 		g.setFont(new Font("TimesRoman", Font.BOLD, 15));
-        g.fillOval(coordX, coordY, node_diam, node_diam);
+        g.fillOval(coordX - node_radius, coordY - node_radius, node_diam, node_diam);
         g.setColor(Color.WHITE);
-        g.drawOval(coordX, coordY, node_diam, node_diam);
+        //g.drawOval(coordX, coordY, node_diam, node_diam);
+		Ellipse2D.Double circle = new Ellipse2D.Double(coordX - node_radius, coordY - node_radius, node_diam, node_diam);
+		g.draw(circle);
         if(number < 10)
-        	g.drawString(((Integer)number).toString(), coordX+13, coordY+20);
+        	g.drawString(((Integer)number).toString(), coordX -4, coordY+6);
         else
-        	g.drawString(((Integer)number).toString(), coordX+8, coordY+20);	
+        	g.drawString(((Integer)number).toString(), coordX-9, coordY+6);
 	}
 }

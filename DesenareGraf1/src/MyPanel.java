@@ -8,6 +8,7 @@ import java.util.Vector;
 public class MyPanel extends JPanel {
 	private int nodeNr = 1;
 	private int node_diam = 30;
+	private int node_radius = node_diam / 2;
 	private Vector<Node> listaNoduri;
 	private Vector<Arc> listaArce;
 	Point pointStart = null;
@@ -32,7 +33,28 @@ public class MyPanel extends JPanel {
 				}
 				else {
 					Arc arc = new Arc(pointStart, pointEnd);
-					listaArce.add(arc);					
+					boolean isInsideNode1 = false;
+					Node node1 = new Node(Integer.MIN_VALUE, Integer.MIN_VALUE);
+					boolean isInsideNode2 = false;
+					Node node2 = new Node(Integer.MIN_VALUE, Integer.MIN_VALUE);
+					for (Node n: listaNoduri){
+						if (isInsideNode(pointStart.x, pointStart.y, n))
+						{
+							isInsideNode1= true;
+							node1 = new Node(n.getCoordX(), n.getCoordY());
+						}
+						if (isInsideNode(pointEnd.x, pointEnd.y, n))
+						{
+							isInsideNode2= true;
+							node2 = new Node(n.getCoordX(), n.getCoordY());
+						}
+
+					}
+					if (isInsideNode1 && isInsideNode2 && node1 != node2)
+					{
+						listaArce.add(arc);
+					}
+
 				}
 				pointStart = null;
 				isDragging = false;
@@ -74,7 +96,9 @@ public class MyPanel extends JPanel {
 		}
 
 	}
-	
+	boolean isInsideNode(int x, int y, Node n) {
+		return(Math.sqrt(Math.pow(Math.abs(x - n.getCoordX()), 2) + Math.pow(Math.abs(y - n.getCoordY()), 2)) <= node_radius);
+	}
 	//se executa atunci cand apelam repaint()
 	protected void paintComponent(Graphics g)
 	{
