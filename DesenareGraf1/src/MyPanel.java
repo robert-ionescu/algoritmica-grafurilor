@@ -1,12 +1,9 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Point;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.Vector;
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
 
 public class MyPanel extends JPanel {
 	private int nodeNr = 1;
@@ -54,10 +51,28 @@ public class MyPanel extends JPanel {
 
 	//metoda care se apeleaza la eliberarea mouse-ului
 	private void addNode(int x, int y) {
-		Node node = new Node(x, y, nodeNr);
-		listaNoduri.add(node);
-		nodeNr++;
-		repaint();
+		boolean nodNeintersectat = true;
+		if (listaNoduri.size() > 0) {
+			for (Node n : listaNoduri) {
+				double distantaDintrePuncte = Math.sqrt(Math.pow(x - n.getCoordX(), 2) + Math.pow(y - n.getCoordY(), 2));
+				if (distantaDintrePuncte < node_diam) {
+					nodNeintersectat = false;
+				}
+			}
+			if (nodNeintersectat) {
+					Node node = new Node(x, y, nodeNr);
+					listaNoduri.add(node);
+					nodeNr++;
+					repaint();
+				}
+		}
+		else {
+			Node node = new Node(x, y, nodeNr);
+			listaNoduri.add(node);
+			nodeNr++;
+			repaint();
+		}
+
 	}
 	
 	//se executa atunci cand apelam repaint()
