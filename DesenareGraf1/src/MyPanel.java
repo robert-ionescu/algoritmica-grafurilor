@@ -3,9 +3,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Vector;
@@ -15,7 +15,7 @@ public class MyPanel extends JPanel {
 	Vector <AbstractMap.SimpleEntry<Node,Node>> listaAdiacentaNeorientata = new Vector<AbstractMap.SimpleEntry<Node,Node>>();
 	Vector <AbstractMap.SimpleEntry<Node,Node>> listaAdiacentaOrientata = new Vector<AbstractMap.SimpleEntry<Node,Node>>();
 	public boolean isUndirectedGraph;
-	private int nodeNr = 1;
+	private int nodeNr = 0;
 	private int node_diam = 30;
 	private int node_radius = node_diam / 2;
 	private Vector<Node> listaNoduri;
@@ -44,7 +44,7 @@ public class MyPanel extends JPanel {
 		else{
 			isUndirectedGraph = false;
 		}
-		//System.out.println(n);
+		//System.writer.println(n);
 		listaNoduri = new Vector<Node>();
 		listaArce = new Vector<Arc>();
 		// borderul panel-ului
@@ -83,28 +83,32 @@ public class MyPanel extends JPanel {
 					AbstractMap.SimpleEntry<Integer,Integer> p2 = new AbstractMap.SimpleEntry<>(node2.getNumber(),node1.getNumber());
 					if (isInsideNode1 && isInsideNode2 && node1 != node2 && isUndirectedGraph && timesNodesHaveBeenLinked.getOrDefault(p1, 0) == 0 && timesNodesHaveBeenLinked.getOrDefault(p2, 0) == 0)
 					{
-						System.out.println(timesNodesHaveBeenLinked.getOrDefault(p1, 0));
-						System.out.println(timesNodesHaveBeenLinked.getOrDefault(p2, 0));
 						AbstractMap.SimpleEntry<Node,Node> entry = new AbstractMap.SimpleEntry<>(node1,node2);
 						listaAdiacentaNeorientata.add(entry);
 						listaArce.add(arc);
 						timesNodesHaveBeenLinked.put(p1, 1);
 						timesNodesHaveBeenLinked.put(p2, 1);
 					}
-					else if (isInsideNode1 && isInsideNode2 && node1 != node2 && !isUndirectedGraph && timesNodesHaveBeenLinked.getOrDefault(p1, 0) < 2 && timesNodesHaveBeenLinked.getOrDefault(p2, 0) <2)
+					else if (isInsideNode1 && isInsideNode2 && node1 != node2 && !isUndirectedGraph && timesNodesHaveBeenLinked.getOrDefault(p1, 0) < 1)
 					{
 						AbstractMap.SimpleEntry<Node,Node> entry = new AbstractMap.SimpleEntry<>(node1,node2);
 						listaAdiacentaOrientata.add(entry);
 						listaArce.add(arc);
 						var val1 = timesNodesHaveBeenLinked.getOrDefault(p1, 0);
 						timesNodesHaveBeenLinked.put(p1, ++val1);
-						var val2 = timesNodesHaveBeenLinked.getOrDefault(p2, 0);
-						timesNodesHaveBeenLinked.put(p2, ++val2);
+						/*var val2 = timesNodesHaveBeenLinked.getOrDefault(p2, 0);
+						timesNodesHaveBeenLinked.put(p2, ++val2);*/
 					}
 
 				}
 				pointStart = null;
 				isDragging = false;
+				repaint();
+				try {
+					CreateMatrixFile();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
 			}
 		});
 		
@@ -159,7 +163,11 @@ public class MyPanel extends JPanel {
 		}*/
 		for (Arc a : listaArce)
 		{
-			a.drawArc(g);
+			if (isUndirectedGraph)
+			a.drawUndirectedArc(g);
+			else{
+				a.drawDirectedArc(g);
+			}
 		}
 		//deseneaza arcul curent; cel care e in curs de desenare
 		if (pointStart != null)
@@ -182,35 +190,46 @@ public class MyPanel extends JPanel {
 		int adjacencyMatrix[][] = new int[listaNoduri.size()][listaNoduri.size()];
 		for (var perecheNoduri: listaAdiacentaNeorientata)
 		{
-			adjacencyMatrix[perecheNoduri.getKey().getNumber()][perecheNoduri.getValue().getNumber()] = adjacencyMatrix[perecheNoduri.getValue().getNumber()][perecheNoduri.getKey().getNumber()]
-					= 1;
+			adjacencyMatrix[perecheNoduri.getKey().getNumber()][perecheNoduri.getValue().getNumber()] = adjacencyMatrix[perecheNoduri.getValue().getNumber()][perecheNoduri.getKey().getNumber()] = 1;
 		}
 		return adjacencyMatrix;
 	}
 	public int[][] CreateDirectedMatrix()
 	{
 		int adjacencyMatrix[][] = new int[listaNoduri.size()][listaNoduri.size()];
-		for (var perecheNoduri: listaAdiacentaNeorientata)
+		for (var perecheNoduri: listaAdiacentaOrientata)
 		{
 			adjacencyMatrix[perecheNoduri.getKey().getNumber()][perecheNoduri.getValue().getNumber()] = 1;
 		}
 		return adjacencyMatrix;
 	}
 	public void CreateMatrixFile() throws IOException {
-		int adjacencyMatrix[][] = CreateUndirectedMatrix();
-			//PrintWriter matrixFile = new PrintWriter("matrix.txt","UTF-8");
-			File matrixFile = new File("matrix.txt");
-			if (!matrixFile.isFile()) {
-				FileWriter fw = new FileWriter(matrixFile);
-				fw.write(nodeNr);
-				for (int i = 0; i < adjacencyMatrix.length; i++) {
-					for (int j = 0; j < adjacencyMatrix[i].length; j++) {
-						fw.write(adjacencyMatrix[i][j]);
-					}
-					fw.write("\n");
+		int adjacencyMatrix[][];
+		if (isUndirectedGraph)
+		{
+			adjacencyMatrix = CreateUndirectedMatrix();
+		}
+		else
+		{
+			adjacencyMatrix = CreateDirectedMatrix();
+		}
+		try{
+		PrintWriter writer = new PrintWriter(new FileWriter("matrix.txt"));
+		writer.write(String.valueOf(nodeNr));
+		writer.write("\n");
+			for (int i = 0; i < adjacencyMatrix.length; i++) {
+				for (int j = 0; j < adjacencyMatrix[i].length; j++) {
+					writer.write(String.valueOf(adjacencyMatrix[i][j]));
 				}
-
+				writer.write("\n");
 			}
+		//writer.flush();
+		writer.close();
+	} catch (IOException e) {
+		System.out.println("An error occurred.");
+		e.printStackTrace();
+	}
+
 
 
 
